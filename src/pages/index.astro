@@ -1,13 +1,13 @@
 ---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ThemeToggle from '@/components/ThemeToggle.astro';
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>jireh's blog</title>
-  </head>
-  <body>
+<BaseLayout title="jireh's blog">
+  <header>
+    <ThemeToggle />
+  </header>
+  <main>
     <h1>jireh's blog</h1>
-  </body>
-</html>
+  </main>
+</BaseLayout>
