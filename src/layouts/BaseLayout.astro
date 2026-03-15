@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import SearchModal from '@/components/SearchModal.astro';
 
 interface Props {
   title: string;
@@ -40,5 +41,6 @@ const { title, description = "jireh's blog" } = Astro.props;
   </head>
   <body>
     <slot />
+    <SearchModal />
   </body>
 </html>

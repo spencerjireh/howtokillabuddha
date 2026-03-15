@@ -1,0 +1,218 @@
+---
+---
+
+<div id="search-modal" class="search-modal" role="dialog" aria-label="Search" aria-modal="true" hidden>
+  <div class="search-modal__backdrop"></div>
+  <div class="search-modal__content">
+    <div class="search-modal__header">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search posts..."
+        class="search-modal__input"
+        autocomplete="off"
+      />
+      <kbd class="search-modal__kbd">esc</kbd>
+    </div>
+    <div id="search-results" class="search-modal__results"></div>
+  </div>
+</div>
+
+<style>
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-block-start: 15vh;
+    padding-inline: var(--page-padding);
+  }
+
+  .search-modal[hidden] {
+    display: none;
+  }
+
+  .search-modal__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .search-modal__content {
+    position: relative;
+    width: 100%;
+    max-width: 550px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .search-modal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-s);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-modal__input {
+    flex: 1;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    color: var(--color-text);
+    outline: none;
+  }
+
+  .search-modal__input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .search-modal__kbd {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 0.1em 0.4em;
+  }
+
+  .search-modal__results {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: var(--space-xs);
+  }
+
+  .search-modal__results:empty::after {
+    content: '';
+  }
+
+  :global(.search-modal__result) {
+    display: block;
+    padding: var(--space-2xs) var(--space-xs);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+  }
+
+  :global(.search-modal__result:hover),
+  :global(.search-modal__result:focus) {
+    background: var(--color-bg-alt);
+  }
+
+  :global(.search-modal__result-title) {
+    font-weight: 700;
+  }
+
+  :global(.search-modal__result-excerpt) {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    margin-block-start: var(--space-3xs);
+  }
+
+  :global(.search-modal__no-results) {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    padding: var(--space-s);
+    text-align: center;
+  }
+</style>
+
+<script>
+  const modal = document.getElementById('search-modal')!;
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const resultsContainer = document.getElementById('search-results')!;
+  const backdrop = modal.querySelector('.search-modal__backdrop')!;
+  let pagefind: any = null;
+
+  async function loadPagefind() {
+    if (pagefind) return pagefind;
+    try {
+      // Dynamic path prevents Vite from trying to bundle this at build time.
+      // Pagefind generates these files post-build into dist/pagefind/.
+      const pagefindPath = '/pagefind/pagefind.js';
+      pagefind = await import(/* @vite-ignore */ pagefindPath);
+      await pagefind.init();
+    } catch {
+      pagefind = null;
+    }
+    return pagefind;
+  }
+
+  function openModal() {
+    modal.hidden = false;
+    input.focus();
+    document.body.style.overflow = 'hidden';
+    loadPagefind();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    input.value = '';
+    resultsContainer.innerHTML = '';
+    document.body.style.overflow = '';
+  }
+
+  // Cmd+K / Ctrl+K to open
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (modal.hidden) {
+        openModal();
+      } else {
+        closeModal();
+      }
+    }
+    if (e.key === 'Escape' && !modal.hidden) {
+      closeModal();
+    }
+  });
+
+  // Click backdrop to close
+  backdrop.addEventListener('click', closeModal);
+
+  // Search on input
+  let debounceTimer: ReturnType<typeof setTimeout>;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const query = input.value.trim();
+      if (!query) {
+        resultsContainer.innerHTML = '';
+        return;
+      }
+
+      const pf = await loadPagefind();
+      if (!pf) {
+        resultsContainer.innerHTML = '<p class="search-modal__no-results">Search unavailable</p>';
+        return;
+      }
+
+      const search = await pf.search(query);
+      if (search.results.length === 0) {
+        resultsContainer.innerHTML = '<p class="search-modal__no-results">No results</p>';
+        return;
+      }
+
+      const results = await Promise.all(
+        search.results.slice(0, 8).map((r: any) => r.data())
+      );
+
+      resultsContainer.innerHTML = results
+        .map(
+          (r: any) => `
+          <a href="${r.url}" class="search-modal__result">
+            <div class="search-modal__result-title">${r.meta?.title || r.url}</div>
+            <div class="search-modal__result-excerpt">${r.excerpt || ''}</div>
+          </a>
+        `
+        )
+        .join('');
+    }, 200);
+  });
+</script>

@@ -13,17 +13,21 @@ const posts = allPosts.sort(
 ---
 
 <BaseLayout title="jireh's blog">
-  <header class="header">
+  <header class="header" data-pagefind-ignore>
     <nav class="nav">
       <a href="/" class="nav__title">jireh's blog</a>
       <div class="nav__actions">
+        <button class="search-trigger" id="search-trigger" type="button" aria-label="Search posts">
+          <span class="search-trigger__text">search</span>
+          <kbd class="search-trigger__kbd">&#8984;K</kbd>
+        </button>
         <a href="/rss.xml" class="nav__rss" aria-label="RSS feed">rss</a>
         <ThemeToggle />
       </div>
     </nav>
   </header>
 
-  <main>
+  <main data-pagefind-body>
     <section class="about">
       <p>
         Software engineer. I write about code, shaders, and whatever else
@@ -155,10 +159,46 @@ const posts = allPosts.sort(
     letter-spacing: 0.05em;
   }
 
+  .search-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: var(--space-3xs) var(--space-2xs);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+  }
+
+  .search-trigger:hover {
+    color: var(--color-text);
+    border-color: var(--color-text);
+  }
+
+  .search-trigger__kbd {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    opacity: 0.6;
+  }
+
   @media (max-width: 600px) {
     .posts__link {
       flex-direction: column;
       gap: var(--space-3xs);
     }
+
+    .search-trigger__kbd {
+      display: none;
+    }
   }
 </style>
+
+<script>
+  document.getElementById('search-trigger')?.addEventListener('click', () => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+  });
+</script>
