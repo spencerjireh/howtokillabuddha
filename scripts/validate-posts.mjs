@@ -1,7 +1,7 @@
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve, basename } from 'node:path';
 
-const ROOT = resolve(import.meta.dirname, '..');
+const ROOT = process.argv[2] ? resolve(process.argv[2]) : resolve(import.meta.dirname, '..');
 const CONTENT_DIR = resolve(ROOT, 'src/content/blog');
 const PAGES_DIR = resolve(ROOT, 'src/pages/blog');
 

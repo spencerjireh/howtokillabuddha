@@ -24,5 +24,10 @@ Thumbs.db
 # debug
 npm-debug.log*
 
+# test artifacts
+tests/.tmp-*
+test-results/
+playwright-report/
+
 # claude
 .claude/.ralph-loop.local.md

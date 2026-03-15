@@ -19,7 +19,7 @@ void main() {
   gl_Position = a_position;
 }`;
 
-function compileShader(gl: WebGLRenderingContext | WebGL2RenderingContext, type: number, source: string): WebGLShader | null {
+export function compileShader(gl: WebGLRenderingContext | WebGL2RenderingContext, type: number, source: string): WebGLShader | null {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
@@ -32,7 +32,7 @@ function compileShader(gl: WebGLRenderingContext | WebGL2RenderingContext, type:
   return shader;
 }
 
-function createProgram(gl: WebGLRenderingContext | WebGL2RenderingContext, vertexSource: string, fragmentSource: string): WebGLProgram | null {
+export function createProgram(gl: WebGLRenderingContext | WebGL2RenderingContext, vertexSource: string, fragmentSource: string): WebGLProgram | null {
   const vert = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
   const frag = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
   if (!vert || !frag) return null;
