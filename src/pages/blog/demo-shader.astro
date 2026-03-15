@@ -12,7 +12,13 @@ const { Content } = await render(post);
 const shaderSource = await import('./demo-shader/shaders/demo.frag?raw').then(m => m.default);
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description}>
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  ogImage={post.data.ogImage}
+  ogType="article"
+  themeColor={post.data.theme === 'dark' ? '#0a0a0a' : '#f5f5f0'}
+>
   <div class="post-page" data-theme={post.data.theme}>
     <!-- Art region -->
     <div class="hero" data-pagefind-ignore>

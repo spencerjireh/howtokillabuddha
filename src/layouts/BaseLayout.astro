@@ -5,9 +5,21 @@ import SearchModal from '@/components/SearchModal.astro';
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
+  ogType?: string;
+  themeColor?: string;
 }
 
-const { title, description = "jireh's blog" } = Astro.props;
+const {
+  title,
+  description = "jireh's blog",
+  ogImage,
+  ogType = 'website',
+  themeColor,
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = ogImage ? new URL(ogImage, Astro.site).toString() : undefined;
 ---
 
 <html lang="en">
@@ -16,6 +28,28 @@ const { title, description = "jireh's blog" } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
+
+    <!-- Canonical -->
+    <link rel="canonical" href={canonicalURL.toString()} />
+
+    <!-- RSS -->
+    <link rel="alternate" type="application/rss+xml" title="jireh's blog" href="/rss.xml" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL.toString()} />
+    {ogImageURL && <meta property="og:image" content={ogImageURL} />}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={ogImageURL ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImageURL && <meta name="twitter:image" content={ogImageURL} />}
+
+    <!-- Theme color -->
+    {themeColor && <meta name="theme-color" content={themeColor} />}
 
     <!-- Preload fonts -->
     <link
