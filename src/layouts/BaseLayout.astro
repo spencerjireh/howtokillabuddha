@@ -74,7 +74,28 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).toString() : undefined
     </script>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <slot />
     <SearchModal />
   </body>
 </html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--page-padding);
+    background: var(--color-surface);
+    color: var(--color-text);
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: var(--text-sm);
+    z-index: 200;
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    top: var(--space-2xs);
+  }
+</style>
