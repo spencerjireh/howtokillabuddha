@@ -1,0 +1,49 @@
+---
+title: "The Art System"
+description: "How this blog renders bespoke art per post using WebGL shaders, islands architecture, and zero-JS defaults."
+date: 2025-03-15
+category: technical
+tags: ["shaders", "webgl", "astro", "architecture"]
+theme: dark
+draft: false
+---
+
+## Every post is a canvas
+
+This blog doesn't use templates. Each post is a hand-designed page where the art _is_ the design. The shader you see above is a fragment shader running in a WebGL2 canvas -- layered fractal Brownian motion with a monochrome palette and film grain.
+
+## How it works
+
+The art system is built on Astro's islands architecture. The page itself is static HTML and CSS. The shader component is a React island that only hydrates when it scrolls into view:
+
+```astro
+<ShaderCanvas client:visible fragmentSource={shaderSource} />
+```
+
+This means:
+
+- **Content renders immediately** from static HTML -- no waiting for JavaScript
+- **Shader loads lazily** -- only when the canvas enters the viewport
+- **Zero JS on pages without art** -- Astro ships no JavaScript by default
+- **Each post's dependencies are code-split** -- visiting this page doesn't load Three.js or any other post's art
+
+## Graceful degradation
+
+The shader canvas handles failure at every level:
+
+- **No WebGL?** Falls back to a CSS gradient
+- **Shader compile error?** Same fallback
+- **Context lost mid-render?** Catches the event, shows fallback
+- **`prefers-reduced-motion`?** Renders a single static frame
+- **Tab hidden or scrolled away?** Animation pauses to save resources
+
+Content is always readable regardless of what happens to the art.
+
+## The two-file system
+
+Each post consists of two files:
+
+1. **Content file** (`.mdx`) -- the writing, with frontmatter metadata
+2. **Page file** (`.astro`) -- the bespoke design that imports the content
+
+The art dictates the theme. This post declares `theme: dark` in its frontmatter, so the entire page uses the dark palette. The theme toggle on the home page doesn't apply here -- the art _is_ the design decision.
