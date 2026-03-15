@@ -171,11 +171,11 @@ export default function ShaderCanvas({
     if (reducedMotion) {
       // Render a single frame
       const time = 0;
-      gl.useProgram(program);
-      if (uResolution) gl.uniform2f(uResolution, canvas.width, canvas.height);
-      if (uTime) gl.uniform1f(uTime, time);
-      if (uMouse) gl.uniform2f(uMouse, 0, 0);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      gl!.useProgram(program);
+      if (uResolution) gl!.uniform2f(uResolution, canvas.width, canvas.height);
+      if (uTime) gl!.uniform1f(uTime, time);
+      if (uMouse) gl!.uniform2f(uMouse, 0, 0);
+      gl!.drawArrays(gl!.TRIANGLES, 0, 6);
     } else {
       animationId = requestAnimationFrame(render);
     }
