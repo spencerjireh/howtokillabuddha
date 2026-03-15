@@ -1,0 +1,90 @@
+---
+title: "Test Post: Prose Elements"
+description: "A draft post exercising all prose elements for visual testing."
+date: 2025-01-01
+category: technical
+tags: ["test", "prose"]
+theme: light
+draft: true
+---
+
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+
+#### Heading 4
+
+This is a paragraph with **bold text**, *italic text*, and `inline code`. Here is a [link to somewhere](#).
+
+Another paragraph to test spacing and rhythm. The quick brown fox jumps over the lazy dog. This sentence exists solely to add length and test line wrapping behavior across different viewport widths.
+
+---
+
+## Code Blocks
+
+TypeScript:
+
+```typescript
+interface Post {
+  title: string;
+  date: Date;
+  draft: boolean;
+}
+
+function getPublishedPosts(posts: Post[]): Post[] {
+  return posts.filter((p) => !p.draft);
+}
+```
+
+Rust:
+
+```rust
+fn main() {
+    let greeting = "hello, world";
+    println!("{}", greeting);
+}
+```
+
+GLSL:
+
+```glsl
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 color = vec3(uv.x, uv.y, 0.5);
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+
+## Lists
+
+Unordered:
+
+- First item
+- Second item
+  - Nested item
+  - Another nested item
+- Third item
+
+Ordered:
+
+1. Step one
+2. Step two
+3. Step three
+
+## Blockquote
+
+> The art is the page. The page is the art. Each post is a bespoke design where content and presentation are inseparable.
+
+## Table
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| MDX | Working | Content Collections |
+| Shiki | Working | Dual theme |
+| Prose styles | Testing | This post |
+
+## Image
+
+Images would go here in a real post. The `prose.css` styles handle `<img>`, `<figure>`, and `<figcaption>` elements.

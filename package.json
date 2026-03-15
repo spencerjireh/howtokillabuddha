@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "validate": "node scripts/validate-posts.mjs",
+    "build": "node scripts/validate-posts.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },

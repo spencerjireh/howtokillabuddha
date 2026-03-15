@@ -1,0 +1,94 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ThemeToggle from '@/components/ThemeToggle.astro';
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('blog', 'test-post');
+if (!post) throw new Error('Post not found: test-post');
+
+const { Content } = await render(post);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <header class="header">
+    <nav class="nav">
+      <a href="/" class="nav__back">&larr; back</a>
+      <ThemeToggle />
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <header class="post-header">
+        <h1 class="post-header__title">{post.data.title}</h1>
+        <div class="post-header__meta">
+          <span class="post-header__category">{post.data.category}</span>
+          <time datetime={post.data.date.toISOString()}>
+            {post.data.date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </time>
+        </div>
+      </header>
+
+      <div class="prose">
+        <Content />
+      </div>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .header {
+    padding-block: var(--space-m);
+    margin-block-end: var(--space-l);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav__back {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .nav__back:hover {
+    color: var(--color-text);
+  }
+
+  .post-header {
+    margin-block-end: var(--space-xl);
+  }
+
+  .post-header__title {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-block-end: var(--space-xs);
+  }
+
+  .post-header__meta {
+    display: flex;
+    gap: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .post-header__category {
+    text-transform: uppercase;
+    font-size: var(--text-xs);
+    letter-spacing: 0.05em;
+  }
+
+  article {
+    padding-block-end: var(--space-2xl);
+  }
+</style>
