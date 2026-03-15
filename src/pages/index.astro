@@ -1,13 +1,164 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ThemeToggle from '@/components/ThemeToggle.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? !data.draft : true;
+});
+
+const posts = allPosts.sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
 ---
 
 <BaseLayout title="jireh's blog">
-  <header>
-    <ThemeToggle />
+  <header class="header">
+    <nav class="nav">
+      <a href="/" class="nav__title">jireh's blog</a>
+      <div class="nav__actions">
+        <a href="/rss.xml" class="nav__rss" aria-label="RSS feed">rss</a>
+        <ThemeToggle />
+      </div>
+    </nav>
   </header>
+
   <main>
-    <h1>jireh's blog</h1>
+    <section class="about">
+      <p>
+        Software engineer. I write about code, shaders, and whatever else
+        I'm thinking about. This is my corner of the internet -- part
+        technical notebook, part personal journal.
+      </p>
+    </section>
+
+    <section class="posts">
+      {posts.length === 0 ? (
+        <p class="posts__empty">Nothing here yet.</p>
+      ) : (
+        <ul class="posts__list">
+          {posts.map((post) => (
+            <li class="posts__item">
+              <a href={`/blog/${post.id}`} class="posts__link">
+                <span class="posts__title">{post.data.title}</span>
+                <span class="posts__meta">
+                  <span class="posts__category">{post.data.category}</span>
+                  <time datetime={post.data.date.toISOString()}>
+                    {post.data.date.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </time>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   </main>
 </BaseLayout>
+
+<style>
+  .header {
+    padding-block: var(--space-m);
+    margin-block-end: var(--space-l);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav__title {
+    font-weight: 700;
+    font-size: var(--text-md);
+    text-decoration: none;
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .nav__rss {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .nav__rss:hover {
+    color: var(--color-text);
+  }
+
+  .about {
+    margin-block-end: var(--space-xl);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    max-width: 55ch;
+  }
+
+  .posts__empty {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .posts__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .posts__item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .posts__item:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .posts__link {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-s);
+    padding-block: var(--space-xs);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .posts__link:hover {
+    color: var(--color-text-muted);
+  }
+
+  .posts__title {
+    font-weight: 400;
+  }
+
+  .posts__meta {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .posts__category {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 600px) {
+    .posts__link {
+      flex-direction: column;
+      gap: var(--space-3xs);
+    }
+  }
+</style>
