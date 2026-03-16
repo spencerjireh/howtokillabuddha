@@ -22,7 +22,7 @@ Separate from the portfolio at spencerjireh.com. Mixed audience (developers and 
 - Islands architecture -- each interactive component hydrates independently, can use any UI framework (React, Svelte, Vue, Solid, vanilla JS, Web Components)
 - Content Collections -- Zod-validated frontmatter, type-safe queries
 - Built on Vite
-- Static output served by nginx (matches portfolio deployment pattern)
+- Static output deployed to Cloudflare Pages
 
 ### Framework-Agnostic Islands
 
@@ -225,7 +225,7 @@ Shared `prose.css` styles for MDX content regions:
 | RSS | @astrojs/rss | Built-in Astro integration |
 | Syntax highlighting | Shiki | Built into Astro, accurate language grammars |
 | Font | JetBrains Mono | Open source, monospace, highly legible |
-| Hosting | Self-hosted Docker on VPS | Multi-stage build: Node.js build -> nginx:alpine static serving |
+| Hosting | Cloudflare Pages | Static deploy via GitHub Actions CI/CD with wrangler |
 | Islands | Framework-agnostic | React by default, add Svelte/Vue/Solid/Lit per post as needed |
 
 ### Key Dependencies
@@ -253,12 +253,12 @@ Additional framework integrations added as needed per post.
 
 ## Deployment
 
-- Multi-stage Docker build
-  - Stage 1: Node.js -- `npm run build` produces static output
-  - Stage 2: `nginx:alpine` -- serves static files
-- No Node.js runtime in production
-- nginx config: gzip, cache headers, security headers
-- Domain TBD
+- Cloudflare Pages static hosting
+  - GitHub Actions CI/CD: tests gate deployment, wrangler deploys on main push
+  - `public/_headers` file: security headers, cache-control rules (Cloudflare-native)
+  - Compression (Brotli + gzip) and 404 routing handled automatically by Cloudflare
+- Branch protection: main requires "Test" status check to pass
+- Custom domain: `blog.spencerjireh.com` (CNAME to `howtokillabuddha.pages.dev`)
 
 ## V1 Scope
 
@@ -272,13 +272,11 @@ What ships in v1:
 6. Dark/light theme system
 7. RSS feed
 8. SEO + Open Graph meta
-9. Docker deployment
+9. Cloudflare Pages deployment with CI/CD
 10. 404 page
 
 ## Open Questions
 
 - Domain name
 - Specific type scale values
-- VPS provider
-- CI/CD pipeline details
 - Image optimization strategy (Astro built-in vs external)

@@ -185,29 +185,20 @@ Tracks development from zero to deployed v1. Each phase has a clear deliverable.
 
 ---
 
-## Phase 8: Deployment [COMPLETE]
+## Phase 8: Cloudflare Pages Deployment [IN PROGRESS]
 
-**Goal:** The site is live on the internet behind a custom domain, served by nginx via Docker on Coolify.
+**Goal:** The site is deployed to Cloudflare Pages with GitHub Actions CI/CD gating deployments behind tests.
 
-**Deliverable:** Production site accessible at custom domain with HTTPS, proper caching, and security headers.
+**Deliverable:** Production site accessible at custom domain with HTTPS, proper caching, and security headers via Cloudflare Pages.
 
-- [x] Create `Dockerfile` (multi-stage build)
-  - Stage 1: `node:22-alpine` -- install deps, run `npm run build` (includes Pagefind indexing)
-  - Stage 2: `nginx:alpine` -- copy static output from stage 1, copy nginx config
-- [x] Create `nginx.conf`
-  - gzip compression (html, css, js, svg, json, xml)
-  - Cache headers: immutable for hashed assets, no-cache for HTML, 1h for XML/JSON
-  - Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
-  - Static multi-page routing with 404.html fallback
-  - Based on portfolio's `nginx.conf` pattern
-- [x] Add `.dockerignore` (node_modules, .git, .env, dist, spec/progress docs)
-- [x] Test Docker build locally: `docker build -t jirehs-blog .` && `docker run -p 8080:80 jirehs-blog`
-- [ ] Configure Coolify:
-  - Point to Git repo
-  - Set build pack to Dockerfile
-  - Configure custom domain + HTTPS (Coolify handles Let's Encrypt)
-  - Set up health check endpoint
-- [ ] DNS: point custom domain to Coolify VPS
+- [x] Create `public/_headers` (security headers, cache-control rules for Cloudflare Pages)
+- [x] Create `.github/workflows/deploy.yml` (CI/CD: test -> deploy via wrangler)
+- [x] Remove Docker/nginx artifacts (`Dockerfile`, `nginx.conf`, `.dockerignore`, docker integration test)
+- [x] Create Cloudflare Pages project: `npx wrangler pages project create howtokillabuddha`
+- [ ] Add GitHub secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+- [ ] Configure custom domain: `blog.spencerjireh.com` -> `howtokillabuddha.pages.dev`
+- [ ] DNS: CNAME `blog.spencerjireh.com` to Cloudflare Pages
+- [ ] Enable branch protection: require "Test" status check on main
 - [ ] Verify production site:
   - HTTPS working
   - All pages load correctly
@@ -222,7 +213,7 @@ Tracks development from zero to deployed v1. Each phase has a clear deliverable.
 ## Post-V1 (Not in scope, tracked for future reference)
 
 - Analytics integration
-- CI/CD pipeline (GitHub Actions -> Coolify webhook)
+- E2e tests in CI (Playwright in GitHub Actions)
 - CMS migration (Astro Content Layer API)
 - Additional framework integrations per post (Svelte, Vue, Solid)
 - Default post layout for quick/simple posts
