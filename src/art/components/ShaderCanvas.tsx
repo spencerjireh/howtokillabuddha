@@ -5,6 +5,7 @@ interface ShaderCanvasProps {
   className?: string;
   style?: CSSProperties;
   fallbackGradient?: string;
+  renderScale?: number;
 }
 
 const VERTEX_SOURCE = `#version 300 es
@@ -56,6 +57,7 @@ export default function ShaderCanvas({
   className,
   style,
   fallbackGradient = 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
+  renderScale = 0.75,
 }: ShaderCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState(false);
@@ -107,56 +109,34 @@ export default function ShaderCanvas({
 
     let mouseX = 0;
     let mouseY = 0;
+    let cachedRect = canvas.getBoundingClientRect();
     const handleMouse = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = rect.height - (e.clientY - rect.top);
+      mouseX = e.clientX - cachedRect.left;
+      mouseY = cachedRect.height - (e.clientY - cachedRect.top);
     };
     canvas.addEventListener('mousemove', handleMouse);
 
     let animationId = 0;
-    let isVisible = true;
+    let running = false;
+    let inViewport = true;
     let startTime = performance.now();
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 2);
+      const dpr = Math.max(Math.min(window.devicePixelRatio, 2) * renderScale, 1);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
       gl!.viewport(0, 0, canvas.width, canvas.height);
+      cachedRect = canvas.getBoundingClientRect();
     };
     resize();
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
 
-    // Visibility lifecycle
-    const observer = new IntersectionObserver(
-      ([entry]) => { isVisible = entry.isIntersecting; },
-      { threshold: 0 }
-    );
-    observer.observe(canvas);
-
-    const handleVisibility = () => {
-      if (document.hidden) isVisible = false;
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    // Context loss
-    const handleContextLost = (e: Event) => {
-      e.preventDefault();
-      cancelAnimationFrame(animationId);
-      setError(true);
-    };
-    canvas.addEventListener('webglcontextlost', handleContextLost);
-
     const render = (now: number) => {
-      if (!isVisible) {
-        animationId = requestAnimationFrame(render);
-        return;
-      }
-
+      if (!running) return;
       const time = (now - startTime) / 1000;
       gl!.useProgram(program);
 
@@ -168,20 +148,55 @@ export default function ShaderCanvas({
       animationId = requestAnimationFrame(render);
     };
 
+    const startLoop = () => {
+      if (running) return;
+      running = true;
+      animationId = requestAnimationFrame(render);
+    };
+
+    const stopLoop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(animationId);
+    };
+
+    // Visibility lifecycle
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewport = entry.isIntersecting;
+        if (inViewport && !document.hidden) startLoop();
+        else stopLoop();
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
+
+    const handleVisibility = () => {
+      if (document.hidden) stopLoop();
+      else if (inViewport) startLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Context loss
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      stopLoop();
+      setError(true);
+    };
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+
     if (reducedMotion) {
-      // Render a single frame
-      const time = 0;
       gl!.useProgram(program);
       if (uResolution) gl!.uniform2f(uResolution, canvas.width, canvas.height);
-      if (uTime) gl!.uniform1f(uTime, time);
+      if (uTime) gl!.uniform1f(uTime, 0);
       if (uMouse) gl!.uniform2f(uMouse, 0, 0);
       gl!.drawArrays(gl!.TRIANGLES, 0, 6);
     } else {
-      animationId = requestAnimationFrame(render);
+      startLoop();
     }
 
     return () => {
-      cancelAnimationFrame(animationId);
+      stopLoop();
       canvas.removeEventListener('mousemove', handleMouse);
       canvas.removeEventListener('webglcontextlost', handleContextLost);
       document.removeEventListener('visibilitychange', handleVisibility);

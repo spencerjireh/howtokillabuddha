@@ -7,14 +7,11 @@ uniform vec2 u_mouse;
 
 out vec4 fragColor;
 
-// Simplex-style noise hash
+// Arithmetic hash (no trig -- fract/dot/mul only)
 vec3 hash3(vec3 p) {
-  p = vec3(
-    dot(p, vec3(127.1, 311.7, 74.7)),
-    dot(p, vec3(269.5, 183.3, 246.1)),
-    dot(p, vec3(113.5, 271.9, 124.6))
-  );
-  return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+  p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+  p += dot(p, p.yxz + 33.33);
+  return -1.0 + 2.0 * fract((p.xxy + p.yxx) * p.zyx);
 }
 
 float noise(vec3 p) {
@@ -40,7 +37,7 @@ float noise(vec3 p) {
 float fbm(vec3 p) {
   float value = 0.0;
   float amplitude = 0.5;
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 4; i++) {
     value += amplitude * noise(p);
     p *= 2.0;
     amplitude *= 0.5;
@@ -58,7 +55,7 @@ void main() {
   // Layered noise field
   float n1 = fbm(vec3(p * 3.0, t));
   float n2 = fbm(vec3(p * 5.0 + n1 * 0.5, t * 1.3));
-  float n3 = fbm(vec3(p * 8.0 + n2 * 0.3, t * 0.7));
+  float n3 = noise(vec3(p * 8.0 + n2 * 0.3, t * 0.7));
 
   // Monochrome palette with subtle warm/cool shifts
   float base = 0.5 + 0.5 * n2;
